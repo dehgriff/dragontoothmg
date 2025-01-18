@@ -173,6 +173,20 @@ func (b *Board) generatePinnedMoves(moveList *[]Move, allowDest uint64) uint64 {
 					}
 				}
 			}
+
+			// We might be able to en passant capture. See if the en passant square is in
+			// the bishop's targets, then see if the piece pinned by the bishop
+			// is 1 rank away from the en passant square.
+			if b.enpassant > 0 && bishopTargets&(1<<b.enpassant) != 0 {
+				// fmt.Println("en passant", b.enpassant)
+				if (b.Wtomove && (pinnedPieceIdx/8)+1 == b.enpassant/8) ||
+					(!b.Wtomove && (pinnedPieceIdx/8)-1 == b.enpassant/8) {
+					var move Move
+					move.Setfrom(Square(pinnedPieceIdx)).Setto(Square(b.enpassant))
+					*moveList = append(*moveList, move)
+				}
+			}
+
 			continue
 		}
 		// If it's not a bishop or queen, it can't move
