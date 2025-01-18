@@ -7,12 +7,15 @@ package dragontoothmg
 // (The exception is a few one-line helpers for Move and Board in types.go)
 
 import (
-	//"fmt"
 	"math/bits"
 )
 
 // The main API entrypoint. Generates all legal moves for a given board.
 func (b *Board) GenerateLegalMoves() []Move {
+	return b.GenerateLegalMovesForPiece(Nothing)
+}
+
+func (b *Board) GenerateLegalMovesForPiece(piece Piece) []Move {
 	moves := make([]Move, 0, kDefaultMoveListLength)
 	// First, see if we are currently in check. If we are, invoke a special check-
 	// evasion move generator.
@@ -37,13 +40,29 @@ func (b *Board) GenerateLegalMoves() []Move {
 		pinnedPieces := b.generatePinnedMoves(&moves, blockerDestinations)
 		nonpinnedPieces := ^pinnedPieces
 		// TODO
-		b.pawnPushes(&moves, nonpinnedPieces, blockerDestinations)
-		b.pawnCaptures(&moves, nonpinnedPieces, blockerDestinations)
-		b.knightMoves(&moves, nonpinnedPieces, blockerDestinations)
-		b.rookMoves(&moves, nonpinnedPieces, blockerDestinations)
-		b.bishopMoves(&moves, nonpinnedPieces, blockerDestinations)
-		b.queenMoves(&moves, nonpinnedPieces, blockerDestinations)
-		b.kingPushes(&moves, ourPiecesPtr)
+		switch piece {
+		case Pawn:
+			b.pawnPushes(&moves, nonpinnedPieces, blockerDestinations)
+			b.pawnCaptures(&moves, nonpinnedPieces, blockerDestinations)
+		case Knight:
+			b.knightMoves(&moves, nonpinnedPieces, blockerDestinations)
+		case Bishop:
+			b.bishopMoves(&moves, nonpinnedPieces, blockerDestinations)
+		case Rook:
+			b.rookMoves(&moves, nonpinnedPieces, blockerDestinations)
+		case Queen:
+			b.queenMoves(&moves, nonpinnedPieces, blockerDestinations)
+		case King:
+			b.kingPushes(&moves, ourPiecesPtr)
+		case Nothing:
+			b.pawnPushes(&moves, nonpinnedPieces, blockerDestinations)
+			b.pawnCaptures(&moves, nonpinnedPieces, blockerDestinations)
+			b.knightMoves(&moves, nonpinnedPieces, blockerDestinations)
+			b.rookMoves(&moves, nonpinnedPieces, blockerDestinations)
+			b.bishopMoves(&moves, nonpinnedPieces, blockerDestinations)
+			b.queenMoves(&moves, nonpinnedPieces, blockerDestinations)
+			b.kingPushes(&moves, ourPiecesPtr)
+		}
 		return moves
 	}
 
@@ -53,13 +72,29 @@ func (b *Board) GenerateLegalMoves() []Move {
 	nonpinnedPieces := ^pinnedPieces
 
 	// Finally, compute ordinary moves, ignoring absolutely pinned pieces on the board.
-	b.pawnPushes(&moves, nonpinnedPieces, everything)
-	b.pawnCaptures(&moves, nonpinnedPieces, everything)
-	b.knightMoves(&moves, nonpinnedPieces, everything)
-	b.rookMoves(&moves, nonpinnedPieces, everything)
-	b.bishopMoves(&moves, nonpinnedPieces, everything)
-	b.queenMoves(&moves, nonpinnedPieces, everything)
-	b.kingMoves(&moves)
+	switch piece {
+	case Pawn:
+		b.pawnPushes(&moves, nonpinnedPieces, everything)
+		b.pawnCaptures(&moves, nonpinnedPieces, everything)
+	case Knight:
+		b.knightMoves(&moves, nonpinnedPieces, everything)
+	case Bishop:
+		b.bishopMoves(&moves, nonpinnedPieces, everything)
+	case Rook:
+		b.rookMoves(&moves, nonpinnedPieces, everything)
+	case Queen:
+		b.queenMoves(&moves, nonpinnedPieces, everything)
+	case King:
+		b.kingMoves(&moves)
+	case Nothing:
+		b.pawnPushes(&moves, nonpinnedPieces, everything)
+		b.pawnCaptures(&moves, nonpinnedPieces, everything)
+		b.knightMoves(&moves, nonpinnedPieces, everything)
+		b.rookMoves(&moves, nonpinnedPieces, everything)
+		b.bishopMoves(&moves, nonpinnedPieces, everything)
+		b.queenMoves(&moves, nonpinnedPieces, everything)
+		b.kingMoves(&moves)
+	}
 	return moves
 }
 
